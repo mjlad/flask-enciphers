@@ -1,26 +1,26 @@
-# quart-enciphers
+# flask-enciphers
 
-Encrypted session interface for Quart using [enciphers](https://pypi.org/project/enciphers/).
+Encrypted session interface for Flask using [enciphers](https://pypi.org/project/enciphers/).
 
-Replaces Quart's default signed cookie session with a fully encrypted one.
+Replaces Flask's default signed cookie session with a fully encrypted one.
 
 ## Installation
 
 ```bash
-pip install quart-enciphers
+pip install flask-enciphers
 ```
 
 ## Usage
 
 ```python
-from quart import Quart, session
-from quart_enciphers import EnciphersSession
+from flask import Flask, session
+from flask_enciphers import EnciphersSession
 
-app = Quart(__name__)
+app = Flask(__name__)
 EnciphersSession(app)
 
 @app.route("/login")
-async def login():
+def login():
     session["user_id"] = 1
     return "logged in"
 ```
@@ -28,12 +28,12 @@ async def login():
 ### Application Factory Pattern
 
 ```python
-from quart_enciphers import EnciphersSession
+from flask_enciphers import EnciphersSession
 
 es = EnciphersSession()
 
 def create_app():
-    app = Quart(__name__)
+    app = Flask(__name__)
     es.init_app(app)
     return app
 ```
