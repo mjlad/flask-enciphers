@@ -2,7 +2,7 @@ from __future__ import annotations
 import secrets
 import orjson
 from flask import Flask
-from enciphers import Encipher
+from enciphers import Encipher, Backend
 from flask.sessions import SecureCookieSessionInterface, SecureCookieSession
 from flask.sessions import SessionMixin
 from werkzeug.wrappers import Request, Response
@@ -29,9 +29,9 @@ class EnciphersSession(SecureCookieSessionInterface):
 
     Configuration::
 
-        app.config["ENCIPHERS_STEP"]    = 7         # optional
-        app.config["ENCIPHERS_KEY"]     = 42        # optional
-        app.config["ENCIPHERS_KEY_ENV"] = "MY_KEY"  # optional
+        app.config["ENCIPHERS_BACKEND"] = "AES256_GCM"  # optional
+        app.config["ENCIPHERS_KEY"]     = 42            # optional
+        app.config["ENCIPHERS_KEY_ENV"] = "MY_KEY"       # optional
     """
 
     session_class = SecureCookieSession
@@ -43,17 +43,16 @@ class EnciphersSession(SecureCookieSessionInterface):
 
     @staticmethod
     def _setup(app: Flask) -> Encipher:
-        step: int | None = app.config.get("ENCIPHERS_STEP")
+        backend_name: str = app.config.get("ENCIPHERS_BACKEND", "AES256_GCM")
         key: int | None = app.config.get("ENCIPHERS_KEY")
         key_env : str | None = app.config.get("ENCIPHERS_KEY_ENV")
 
-        if not step:
-            step = secrets.randbelow(255) + 1
+        backend = getattr(Backend, backend_name)
 
         if not key and not key_env:
-            key = secrets.randbits(64)
+            key = secrets.randbits(128)
 
-        return Encipher(step=step, key=key, key_env=key_env)
+        return Encipher(backend, key=key, key_env=key_env)
 
     def init_app(self, app: Flask) -> None:
         self.cipher = self._setup(app)
@@ -104,7 +103,10 @@ class EnciphersSession(SecureCookieSessionInterface):
             return
 
         expires = self.get_expiration_time(app, session)
-        token   = self.cipher.encrypt(orjson.dumps(dict(session)))
+        token   = self.cipher.encrypt(
+            orjson.dumps(dict(session)),
+            expires_at = int(expires.timestamp()) if expires else None,
+        )
 
         response.set_cookie(
             name,

@@ -4,14 +4,14 @@ build-backend = "hatchling.build"
 
 [project]
 name            = "flask-enciphers"
-version         = "0.1.1"
+version         = "2.0.0"
 description     = "Encrypted session interface for Flask using enciphers"
 readme          = "README.md"
 license         = { text = "Apache-2.0" }
 authors         = [{ name = "Mejlad Alsubaie" }]
 keywords        = ["flask", "session", "encryption", "enciphers"]
 requires-python = ">=3.11"
-dependencies = ["flask >= 2.0", "enciphers", "orjson"]
+dependencies = ["flask >= 2.0", "enciphers >= 2, < 3", "orjson"]
 
 classifiers = [
     "Development Status :: 4 - Beta",
